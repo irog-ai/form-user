@@ -10,6 +10,30 @@
       "StackName": "amplify-formdata-dev-eede5",
       "StackId": "arn:aws:cloudformation:us-east-2:471112882851:stack/amplify-formdata-dev-eede5/d3e27230-1302-11ef-84a9-025b8cc1bccb",
       "AmplifyAppId": "d2juc4bptwol87"
+    },
+    "categories": {
+      "function": {
+        "chatgptresponses": {
+          "secretsPathAmplifyAppId": "d2juc4bptwol87",
+          "deploymentBucketName": "amplify-formdata-dev-eede5-deployment",
+          "s3Key": "amplify-builds/chatgptresponses-4254616f782b70625354-build.zip"
+        },
+        "getQuestionsform": {
+          "deploymentBucketName": "amplify-formdata-dev-eede5-deployment",
+          "s3Key": "amplify-builds/getQuestionsform-4848725a38735679536e-build.zip"
+        },
+        "phonenumbercheck": {
+          "deploymentBucketName": "amplify-formdata-dev-eede5-deployment",
+          "s3Key": "amplify-builds/phonenumbercheck-39534774487948567969-build.zip"
+        },
+        "updateresponses": {
+          "deploymentBucketName": "amplify-formdata-dev-eede5-deployment",
+          "s3Key": "amplify-builds/updateresponses-67564a5431705970445a-build.zip"
+        }
+      },
+      "api": {
+        "api": {}
+      }
     }
   }
 }

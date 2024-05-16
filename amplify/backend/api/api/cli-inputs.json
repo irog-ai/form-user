@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "paths": {
+    "/chatgptresponses/{id}": {
+      "name": "/chatgptresponses/{id}",
+      "lambdaFunction": "chatgptresponses",
+      "permissions": {
+        "setting": "open"
+      }
+    },
+    "/getQuestionsform/{id}": {
+      "name": "/getQuestionsform/{id}",
+      "lambdaFunction": "getQuestionsform",
+      "permissions": {
+        "setting": "open"
+      }
+    },
+    "/phonenumbercheck/{id}": {
+      "name": "/phonenumbercheck/{id}",
+      "lambdaFunction": "phonenumbercheck",
+      "permissions": {
+        "setting": "open"
+      }
+    },
+    "/updateresponses": {
+      "name": "/updateresponses",
+      "lambdaFunction": "updateresponses",
+      "permissions": {
+        "setting": "open"
+      }
+    }
+  }
+}

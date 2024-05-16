@@ -2,6 +2,64 @@
   text-align: center;
 }
 
+.scroll-to-bottom-container {
+  position: relative;
+  /* Add any necessary styling for your page content here */
+}
+
+.scroll-to-bottom-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  /* Add any necessary styling for your button here */
+}
+
+.button-with-arrow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #f8f8f8;
+  border: none;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  position: fixed;
+  top: 50%; /* Update to center the button vertically */
+  right: 20px;
+  transform: translateY(-50%); /* Adjust the transform to center the button vertically */
+  margin-right: 0%;
+}
+
+.button-with-arrow::after {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-left: 2px solid #333;
+  border-bottom: 2px solid #333;
+  margin-left: 4px;
+  border-right: none;
+  border-top: none;
+  transform: rotate(-45deg);
+}
+
+
+/* Media Query for Mobile Devices */
+@media (max-width: 767px) {
+  .button-with-arrow {
+    width: 30px;
+    height: 30px;
+    right: 2px;
+  }
+  
+  .button-with-arrow::after {
+    width: 5px;
+    height: 5px;
+  }
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;

@@ -1,1 +1,138 @@
-{}
+{
+  "api": {
+    "api": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "chatgptresponses"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "getQuestionsform"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "phonenumbercheck"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "updateresponses"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
+    }
+  },
+  "function": {
+    "chatgptresponses": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "getQuestionsform": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "phonenumbercheck": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "updateresponses": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_function_chatgptresponses_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "chatgptresponses"
+        }
+      ]
+    },
+    "AMPLIFY_function_chatgptresponses_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "chatgptresponses"
+        }
+      ]
+    },
+    "AMPLIFY_function_chatgptresponses_secretsPathAmplifyAppId": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "chatgptresponses"
+        }
+      ]
+    },
+    "AMPLIFY_function_getQuestionsform_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "getQuestionsform"
+        }
+      ]
+    },
+    "AMPLIFY_function_getQuestionsform_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "getQuestionsform"
+        }
+      ]
+    },
+    "AMPLIFY_function_phonenumbercheck_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "phonenumbercheck"
+        }
+      ]
+    },
+    "AMPLIFY_function_phonenumbercheck_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "phonenumbercheck"
+        }
+      ]
+    },
+    "AMPLIFY_function_updateresponses_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "updateresponses"
+        }
+      ]
+    },
+    "AMPLIFY_function_updateresponses_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "updateresponses"
+        }
+      ]
+    }
+  }
+}

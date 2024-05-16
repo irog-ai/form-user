@@ -1,25 +1,28 @@
-import logo from './logo.svg';
-import './App.css';
+import "@aws-amplify/ui-react/styles.css";
+
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route
+} from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import LandingPage from "./LandingPage";
+import Submit from "./Submit"
+
+
 
 function App() {
+ 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React!!!!!!!!!!!!!!!!!!!
-        </a>
-      </header>
+    <div>    
+      <Routes>    
+      <Route path="/" element={<LandingPage />} />    
+        <Route exact path="/Submit/:key" element={<Submit />}/>
+      </Routes>
     </div>
   );
 }
 
+
 export default App;
+
