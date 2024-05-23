@@ -17,8 +17,7 @@ function App() {
     <div>    
       <Routes>    
       <Route path="/" element={<LandingPage />} />    
-        <Route exact path="/Submit/:key" element={<Submit />}/>
-        
+        <Route exact path="/Submit/:key" element={<Submit />}/>        
       </Routes>
     </div>
   );
