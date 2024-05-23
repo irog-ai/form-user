@@ -93,6 +93,7 @@ const Submit = (props) => {
     let newState = { ...state };
     newState[e.target.name] = e.target.value;
     setState(newState);
+    
   };
 
   const checkPhoneNumber = async () => {
