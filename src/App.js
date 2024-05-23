@@ -18,6 +18,7 @@ function App() {
       <Routes>    
       <Route path="/" element={<LandingPage />} />    
         <Route exact path="/Submit/:key" element={<Submit />}/>
+        
       </Routes>
     </div>
   );

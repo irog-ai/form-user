@@ -65,8 +65,8 @@ exports.handler = async (event) => {
         const table = new sql.Table("WebResponses");
 
         table.create = false;
-        table.columns.add("CaseId", sql.Int, { nullable: true });
-        table.columns.add("QuestionId", sql.Int, { nullable: true });
+        table.columns.add("CaseId", sql.Int, { nullable: false });
+        table.columns.add("QuestionId", sql.Int, { nullable: false });
         table.columns.add("StandardAnswer", sql.NVarChar(sql.MAX), {
           nullable: true,
         });

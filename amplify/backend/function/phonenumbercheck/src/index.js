@@ -22,7 +22,7 @@ exports.handler =async (event) => {
     const config = {
         user: "admin",
         password: "Admin123",
-        server: "irog-db.cv62ee6awzrf.us-east-2.rds.amazonaws.com",
+        server: "irog-ai-db.cv62ee6awzrf.us-east-2.rds.amazonaws.com",
         port: 1433,
         options: {
           database: "irog",

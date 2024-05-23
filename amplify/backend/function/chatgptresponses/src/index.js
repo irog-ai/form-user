@@ -137,7 +137,7 @@ exports.handler = async (event) => {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: "Bearer " + Parameters[2].Value,
+              Authorization: "Bearer " + Parameters[0].Value,
             },
           }
         );
