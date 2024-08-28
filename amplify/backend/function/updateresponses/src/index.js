@@ -31,14 +31,6 @@ exports.handler = async (event) => {
 
     //console.log(formdata);
   }
-//   const { Parameters } = await new aws.SSM()
-//     .getParameters({
-//       Names: ["DB_USERNAME", "DB_PASS"].map(
-//         (secretName) => process.env[secretName]
-//       ),
-//       WithDecryption: true,
-//     })
-//     .promise();
 
   const promise = new Promise((resolve, reject) => {
     let sql = require("mssql");

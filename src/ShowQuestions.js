@@ -109,7 +109,7 @@ const ShowQuestions = (props) => {
                           style={{
                             backgroundColor:
                               relevancyStatus[index] === "relevant" ||
-                              (question.isModified === false &&
+                              (question.IsModified === 0 &&
                                 question.StandardAnswer !== null)
                                 ? "green"
                                 : "orange",
@@ -145,7 +145,7 @@ const ShowQuestions = (props) => {
                     }
                     secondary={
                       relevancyStatus[index] === "relevant" ||
-                      (question.isModified === false &&
+                      (question.IsModified === 0 &&
                         question.StandardAnswer !== null)
                         ? "Answered"
                         : "Not Answered"
@@ -154,7 +154,7 @@ const ShowQuestions = (props) => {
                       style: {
                         color:
                           relevancyStatus[index] === "relevant" ||
-                          (question.isModified === false &&
+                          (question.IsModified === 0 &&
                             question.StandardAnswer !== null)
                             ? "green"
                             : "orange",

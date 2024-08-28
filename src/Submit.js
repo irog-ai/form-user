@@ -183,7 +183,7 @@ const Submit = (props) => {
         tableData = await response.recordset;
         tableData = tableData.map((item) => ({
           ...item, 
-          isModified: false, // Adding this new properrty for tracking already answered and saved questions
+          IsModified: 0, // Adding this new properrty for tracking already answered and saved questions
         }));
         //tableData.forEach(item => item.relevancyStatus = true);
         console.log(tableData);
@@ -223,7 +223,7 @@ const Submit = (props) => {
   const handleValueChange = (e) => {
     const updatedQuestions = state.tableData.map((question) => {
       if (question.Id.toString() === e.target.name.toString()) {
-        return { ...question, StandardAnswer: e.target.value, isModified: true };
+        return { ...question, StandardAnswer: e.target.value, IsModified: 1 };
       }
       return question;
     });
