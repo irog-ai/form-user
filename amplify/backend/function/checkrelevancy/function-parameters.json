@@ -1,0 +1,9 @@
+{
+  "lambdaLayers": [],
+  "environmentVariableList": [
+    {
+      "cloudFormationParameterName": "relevancyPrompt",
+      "environmentVariableName": "RELEVANCY_PROMPT"
+    }
+  ]
+}

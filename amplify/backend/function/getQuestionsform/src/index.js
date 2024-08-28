@@ -54,7 +54,7 @@ exports.handler =async (event) => {
         const selectQuery =`select q.Id, q.SequenceNumber,q.MsgSentDateTime,  q.CaseId, q.MsgSent, q.MsgReceived, q.OriginalQuestion 
         ,q.StandardQuestion,0 as IsModified,r.PiiInfo as PiiInfo,  r.StandardAnswer, r.OriginalAnswer from questions q 
                 left outer join Webresponses r on q.Id = r.QuestionId and r.IsActive=1
-                where q.CaseId=@caseId order by q.SequenceNumber asc`;
+                where q.CaseId=@caseId and q.IsActive=1 order by q.SequenceNumber asc`;
         request.query(selectQuery, (err, result) => {
           if (err) {
             reject(err);

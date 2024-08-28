@@ -28,6 +28,13 @@
       "permissions": {
         "setting": "open"
       }
+    },
+    "/checkrelevancy": {
+      "name": "/checkrelevancy",
+      "lambdaFunction": "checkrelevancy",
+      "permissions": {
+        "setting": "open"
+      }
     }
   }
 }

@@ -33,6 +33,14 @@
           ],
           "category": "function",
           "resourceName": "updateresponses"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "checkrelevancy"
         }
       ],
       "providerPlugin": "awscloudformation",
@@ -42,6 +50,12 @@
   "function": {
     "chatgptresponses": {
       "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "checkrelevancy": {
+      "build": true,
+      "dependsOn": [],
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     },
@@ -83,6 +97,30 @@
         {
           "category": "function",
           "resourceName": "chatgptresponses"
+        }
+      ]
+    },
+    "AMPLIFY_function_checkrelevancy_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "checkrelevancy"
+        }
+      ]
+    },
+    "AMPLIFY_function_checkrelevancy_relevancyPrompt": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "checkrelevancy"
+        }
+      ]
+    },
+    "AMPLIFY_function_checkrelevancy_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "checkrelevancy"
         }
       ]
     },

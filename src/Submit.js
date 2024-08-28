@@ -19,6 +19,7 @@ import Loading from "./ReusableComponents/Loading";
 import Typography from "@mui/material/Typography";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import "./App.css";
+import * as myConstClass from "./Util/Constants";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="left" ref={ref} {...props} />;
@@ -40,6 +41,9 @@ const Submit = (props) => {
     changesMade: false,
     showThankyouMessage: false,
     consentChecked: false,
+    globalrelevancyflag: true,
+    showNocaseMessage: false,
+    emptyStandardAnswerCount: 0,
   };
   const [state, setState] = useState(initialState);
 
@@ -59,27 +63,94 @@ const Submit = (props) => {
     let record;
     //setState({ ...state, isLoading: true });
     async function getPhonenumber() {
+      let response;
       await API.get(myAPI, path + "/" + caseId, {
         headers: {
           "Content-Type": "text/plain",
         },
-      }).then(async (response) => {
-        console.log(response);
-        record = await response.recordset[0];
+      })
+        .then(async (res) => {
+          //console.log(response);
+          response = await res;
+        })
+        .catch(() => {
+          setState({ ...state, showNocaseMessage: true });
+        });
+      if (response.recordset.length === 0) {
+        setState({
+          ...state,
+          showNocaseMessage: true,
+          isLoading: false,
+          noCaseMessage: `Apologies, but we have no current records for this case on our end. 
+          Please open the link from the email your attorney sent. 
+          If you're still experiencing issues, please contact your attorney for further assistance.`,
+        });
+      } else if (
+        response.recordset[0].Status === myConstClass.STATUS_AWAITING
+      ) {
+        record = response.recordset[0];
         console.log(record);
         console.log(record.PhoneNumber);
-        //console.log(tableData);
         setState({
           ...state,
           casePhonenumber: record.PhoneNumber,
           isLoading: false,
           showDialog: true,
         });
-      });
+      } else {
+        setState({
+          ...state,
+          showNocaseMessage: true,
+          isLoading: false,
+          noCaseMessage: `Currently, no action is needed from your side. 
+          Please wait for an email regarding any further steps, if required. 
+          If you need any additional details, please contact your attorney.`,
+        });
+      }
     }
 
     getPhonenumber();
   }, []);
+
+  const relevancyCheck = async (answer, question, index) => {
+    let relevant = true;
+    let expalnation = "";
+    const path = "/checkrelevancy";
+    const formData = new FormData();
+    formData.append("question", question);
+    formData.append("answer", answer);
+    await API.post(myAPI, path, {
+      body: formData,
+    }).then((response) => {
+      console.log(response);
+      if (Number(response.score) < 70) relevant = false;
+      expalnation = response.explanation;
+    });
+    let temptabledata = [...state.tableData];
+    const item = temptabledata.find((item) => item.Id === index);
+    if (item) {
+      item.relevancyStatus = relevant ? "relevant" : "irrelevant";
+      item.relevancyMessage = expalnation;
+    }
+    if (relevant) {
+      const globalRelevancyFlag = !state.tableData.some(
+        (item) => item.relevancyStatus === "irrelevant"
+      );
+      console.log("***" + globalRelevancyFlag);
+      setState({
+        ...state,
+        globalrelevancyflag: globalRelevancyFlag,
+        tableData: temptabledata,
+      });
+    } else {
+      setState({
+        ...state,
+        globalrelevancyflag: false,
+        tableData: temptabledata,
+      });
+    }
+    return relevant;
+  };
 
   const scrollRef = useRef(null);
   const handleScrollToBottom = () => {
@@ -93,7 +164,6 @@ const Submit = (props) => {
     let newState = { ...state };
     newState[e.target.name] = e.target.value;
     setState(newState);
-    
   };
 
   const checkPhoneNumber = async () => {
@@ -111,6 +181,11 @@ const Submit = (props) => {
       }).then(async (response) => {
         console.log(response);
         tableData = await response.recordset;
+        tableData = tableData.map((item) => ({
+          ...item, 
+          isModified: false, // Adding this new properrty for tracking already answered and saved questions
+        }));
+        //tableData.forEach(item => item.relevancyStatus = true);
         console.log(tableData);
         //await updateChatGptQuestions(tableData);
       });
@@ -148,7 +223,7 @@ const Submit = (props) => {
   const handleValueChange = (e) => {
     const updatedQuestions = state.tableData.map((question) => {
       if (question.Id.toString() === e.target.name.toString()) {
-        return { ...question, StandardAnswer: e.target.value, IsModified: 1 };
+        return { ...question, StandardAnswer: e.target.value, isModified: true };
       }
       return question;
     });
@@ -175,11 +250,16 @@ const Submit = (props) => {
       await response;
       API.get(myAPI, path2 + "/" + key.split("-")[0]);
     });
+    const emptyStandardAnswerCount = state.tableData.filter(
+      (item) => item.StandardAnswer === null || item.StandardAnswer === ""
+    ).length;
+    console.log();
     setState({
       ...state,
       isLoading: false,
       changesMade: false,
       showThankyouMessage: true,
+      emptyStandardAnswerCount: emptyStandardAnswerCount,
     });
   };
 
@@ -245,22 +325,23 @@ const Submit = (props) => {
 
       {state.tableData != undefined &&
         state.tableData.length > 0 &&
-        !state.showThankyouMessage && (
+        !state.showThankyouMessage &&
+        !state.showNocaseMessage && (
           <div
-            style={{ marginLeft: "7%", marginRight: "7%" }}
+            style={{ marginLeft: "3%", marginRight: "3%" }}
             className="scroll-to-bottom-container"
           >
             <div ref={scrollRef} />
-            <button
+            {/* <button
               onClick={handleScrollToBottom}
               className="button-with-arrow"
-            ></button>
+            ></button> */}
             <Typography
               variant="h5"
               style={{ color: "rgb(0, 0, 0)", marginTop: "30px" }}
               gutterBottom
             >
-              Client Questionnaire
+              Client Interrogatories
             </Typography>
             <Typography variant="overline" display="block" gutterBottom>
               {key.substring(key.indexOf("-") + 1)}
@@ -268,6 +349,7 @@ const Submit = (props) => {
             <ShowQuestions
               data={state.tableData}
               handleValueChange={handleValueChange}
+              relevancyCheck={relevancyCheck}
             />
 
             <FormControlLabel
@@ -279,20 +361,52 @@ const Submit = (props) => {
               labelPlacement="end"
               disabled={!state.changesMade}
             />
+            {!state.globalrelevancyflag && (
+              <p style={{ color: "red", margin: "5px" }}>
+                Some responses appear to be irrelevant. Kindly ensure that all
+                entries are appropriate before proceeding with the submission.{" "}
+              </p>
+            )}
             <Button
               variant="contained"
               onClick={onSubmit}
-              disabled={!state.changesMade || !state.consentChecked}
+              disabled={
+                !state.changesMade ||
+                !state.consentChecked ||
+                !state.globalrelevancyflag
+              }
               style={{ marginTop: "10px", marginBottom: "20px" }}
             >
               Submit responses
             </Button>
           </div>
         )}
+      {state.showNocaseMessage && (
+        <React.Fragment>
+          <p className="Message-box">{state.noCaseMessage}</p>
+        </React.Fragment>
+      )}
       {state.showThankyouMessage && (
         <React.Fragment>
           <Typography variant="h6" gutterBottom align="center">
-            Thank you for your responses!!!!
+            {state.emptyStandardAnswerCount > 0 && (
+              <p className="Message-box">
+                Thank you for your responses. There is still{" "}
+                {state.emptyStandardAnswerCount === 1
+                  ? "1 question"
+                  : `${state.emptyStandardAnswerCount} questions`}{" "}
+                that require your attention. Please submit your answers at your
+                earliest convenience
+              </p>
+            )}
+            {state.emptyStandardAnswerCount === 0 && (
+              <p className="Message-box">
+                All your responses have been duly recorded. Your attorney will
+                reach out to you if further information is needed. If you have
+                any questions or need additional assistance, please don't
+                hesitate to contact your attorney."
+              </p>
+            )}
           </Typography>
         </React.Fragment>
       )}

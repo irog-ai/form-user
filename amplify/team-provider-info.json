@@ -20,7 +20,7 @@
         },
         "getQuestionsform": {
           "deploymentBucketName": "amplify-formdata-dev-eede5-deployment",
-          "s3Key": "amplify-builds/getQuestionsform-365171416c2b56576768-build.zip"
+          "s3Key": "amplify-builds/getQuestionsform-6d6f386361484d6e6e2f-build.zip"
         },
         "phonenumbercheck": {
           "deploymentBucketName": "amplify-formdata-dev-eede5-deployment",
@@ -29,6 +29,11 @@
         "updateresponses": {
           "deploymentBucketName": "amplify-formdata-dev-eede5-deployment",
           "s3Key": "amplify-builds/updateresponses-345352392b6a794d4833-build.zip"
+        },
+        "checkrelevancy": {
+          "deploymentBucketName": "amplify-formdata-dev-eede5-deployment",
+          "s3Key": "amplify-builds/checkrelevancy-6b4f4b4c6d7344743650-build.zip",
+          "relevancyPrompt": "Evaluate the relevance of the following question and answer pair on a scale of 1 to 100"
         }
       },
       "api": {
