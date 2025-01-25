@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Checkbox from "@mui/material/Checkbox";
 import DialogActions from "@mui/material/DialogActions";
+import axios from "axios";
 import { API } from "aws-amplify";
 import {
   Button,
@@ -24,6 +25,7 @@ import * as myConstClass from "./Util/Constants";
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="left" ref={ref} {...props} />;
 });
+const apipath = process.env.REACT_APP_API_URL;
 
 const Submit = (props) => {
   const { key } = useParams();
@@ -44,6 +46,7 @@ const Submit = (props) => {
     globalrelevancyflag: true,
     showNocaseMessage: false,
     emptyStandardAnswerCount: 0,
+    statusChangedMessage:""
   };
   const [state, setState] = useState(initialState);
 
@@ -58,41 +61,38 @@ const Submit = (props) => {
   );
 
   useEffect(() => {
-    const path = "/phonenumbercheck";
     const caseId = key.split("-")[0];
+    const apiFunctionPath = `userform/getCaseById/${caseId}`;
+
     let record;
-    //setState({ ...state, isLoading: true });
     async function getPhonenumber() {
       let response;
-      await API.get(myAPI, path + "/" + caseId, {
-        headers: {
-          "Content-Type": "text/plain",
-        },
-      })
+      await axios
+        .get(apipath + apiFunctionPath)
         .then(async (res) => {
-          //console.log(response);
-          response = await res;
+          response = res;
         })
-        .catch(() => {
-          setState({ ...state, showNocaseMessage: true });
+        .catch((error) => {
+          console.log(error);
+          setState({ ...state, showNocaseMessage: true, isLoading: false });
         });
-      if (response.recordset.length === 0) {
+      if (response.data.length === 0) {
         setState({
           ...state,
+          caseId: caseId,
           showNocaseMessage: true,
           isLoading: false,
           noCaseMessage: `Apologies, but we have no current records for this case on our end. 
           Please open the link from the email your attorney sent. 
           If you're still experiencing issues, please contact your attorney for further assistance.`,
         });
-      } else if (
-        response.recordset[0].Status === myConstClass.STATUS_AWAITING
-      ) {
-        record = response.recordset[0];
+      } else if (response.data.Status === myConstClass.STATUS_AWAITING) {
+        record = response.data;
         console.log(record);
         console.log(record.PhoneNumber);
         setState({
           ...state,
+          caseId: caseId,
           casePhonenumber: record.PhoneNumber,
           isLoading: false,
           showDialog: true,
@@ -101,6 +101,7 @@ const Submit = (props) => {
         setState({
           ...state,
           showNocaseMessage: true,
+          caseId: caseId,
           isLoading: false,
           noCaseMessage: `Currently, no action is needed from your side. 
           Please wait for an email regarding any further steps, if required. 
@@ -112,44 +113,66 @@ const Submit = (props) => {
     getPhonenumber();
   }, []);
 
-  const relevancyCheck = async (answer, question, index) => {
-    let relevant = true;
-    let expalnation = "";
-    const path = "/checkrelevancy";
-    const formData = new FormData();
-    formData.append("question", question);
-    formData.append("answer", answer);
-    await API.post(myAPI, path, {
-      body: formData,
-    }).then((response) => {
+  const relevancyCheck = async (answer, question, index, subQuestionIndex) => {
+    try {
+      const path = `userform/evaluateAnswer/${state.caseId}`;
+      const requestBody = {
+        question: question,
+        answer: answer,
+      };
+      console.log(requestBody);
+
+      const response = await axios.post(`${apipath}${path}`, requestBody, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       console.log(response);
-      if (Number(response.score) < 70) relevant = false;
-      expalnation = response.explanation;
-    });
-    let temptabledata = [...state.tableData];
-    const item = temptabledata.find((item) => item.Id === index);
-    if (item) {
-      item.relevancyStatus = relevant ? "relevant" : "irrelevant";
-      item.relevancyMessage = expalnation;
-    }
-    if (relevant) {
-      const globalRelevancyFlag = !state.tableData.some(
+      const chatgptResponse = response.data;
+      let relevant = true;
+      let explanation = "";
+      let relevantScoreThreshold = 90;
+
+      if (chatgptResponse.score < relevantScoreThreshold) {
+        relevant = false;
+        explanation = chatgptResponse.explanation;
+      }
+
+      // Update state
+      let updatedTableData = [...state.tableData];
+      const item = updatedTableData.find((item) => item.Id === index);
+      if (item) {
+        item.IsModified = 1;
+        item.relevancyStatus = relevant ? "relevant" : "irrelevant";
+        item.relevancyMessage = explanation;
+        const subItem = item.subQuestions.find((subQues)=>subQues.Id===subQuestionIndex);
+        subItem.relevancyStatus = relevant ? "relevant" : "irrelevant";
+        subItem.relevancyMessage = explanation;
+      }
+
+      const globalRelevancyFlag = !updatedTableData.some(
         (item) => item.relevancyStatus === "irrelevant"
       );
-      console.log("***" + globalRelevancyFlag);
+
       setState({
         ...state,
         globalrelevancyflag: globalRelevancyFlag,
-        tableData: temptabledata,
+        tableData: updatedTableData,
       });
-    } else {
-      setState({
-        ...state,
-        globalrelevancyflag: false,
-        tableData: temptabledata,
-      });
+      console.log(state.tableData);
+      return relevant;
+    } catch (error) {
+      console.error("Error during relevancy check:", error.message);
+
+      // Optionally, update state to handle errors
+      setState((prevState) => ({
+        ...prevState,
+        errorMessage:
+          "There was a problem evaluating relevancy. Please try again.",
+      }));
+
+      return false;
     }
-    return relevant;
   };
 
   const scrollRef = useRef(null);
@@ -167,23 +190,28 @@ const Submit = (props) => {
   };
 
   const checkPhoneNumber = async () => {
-    const path = "/getQuestionsform";
+    const path = `userform/getQuestionsWithResponses/${key.split("-")[0]}`;
     console.log(state.casePhonenumber + "..." + state.phoneNumber);
     if (state.casePhonenumber.toString() !== state.phoneNumber.toString()) {
       setState({ ...state, phoneNumberVerified: false });
     } else {
       let tableData;
       setState({ ...state, isLoading: true });
-      await API.get(myAPI, path + "/" + key.split("-")[0], {
-        headers: {
-          "Content-Type": "text/plain",
-        },
-      }).then(async (response) => {
+      // await API.get(myAPI, path + "/" + key.split("-")[0], {
+      //   headers: {
+      //     "Content-Type": "text/plain",
+      //   },
+      // })
+      await axios.get(`${apipath}${path}`).then(async (response) => {
         console.log(response);
-        tableData = await response.recordset;
+        tableData = await response.data;
         tableData = tableData.map((item) => ({
-          ...item, 
+          ...item,
           IsModified: 0, // Adding this new properrty for tracking already answered and saved questions
+          subQuestions: item.subQuestions.map(subQues=>({
+            ...subQues,
+            IsModified: 0
+          }))
         }));
         //tableData.forEach(item => item.relevancyStatus = true);
         console.log(tableData);
@@ -220,47 +248,105 @@ const Submit = (props) => {
     });
   };
 
+  // const handleValueChange = (e) => {
+  //   let name = e.target.name.split('-');
+  //   const questionIndex = name[0];
+  //   const subQuestionIndex = name[1];
+  //   const updatedQuestions = state.tableData.map((question) => {
+  //     if (question.Id.toString() === questionIndex) {
+  //       return { ...question, StandardAnswer: e.target.value, IsModified: 1 };
+  //     }
+  //     return question;
+  //   });
+  //   setState({ ...state, tableData: updatedQuestions, changesMade: true });
+  // };
   const handleValueChange = (e) => {
-    const updatedQuestions = state.tableData.map((question) => {
-      if (question.Id.toString() === e.target.name.toString()) {
-        return { ...question, StandardAnswer: e.target.value, IsModified: 1 };
+    // Split the name to get indexes for question and sub-question
+    
+    let name = e.target.name.split('-');
+    console.log(name);
+    const questionIndex = parseInt(name[0], 10); // Parse strings to integers
+    const subQuestionIndex = parseInt(name[1], 10);
+  
+    const updatedQuestions = state.tableData.map((question, qIndex) => {
+      if (question.Id === questionIndex) {
+        question.IsModified = 1;
+        // Map over subQuestions to update the specific sub-question
+        const updatedSubQuestions = question.subQuestions.map((subQuestion, sqIndex) => {
+          if (subQuestion.Id === subQuestionIndex) {
+            return {
+              ...subQuestion,
+              UserResponse: e.target.value, // Update UserResponse field
+              IsModified: 1
+            };
+          }
+          return subQuestion;
+        });
+  
+        return { ...question, subQuestions: updatedSubQuestions };
       }
       return question;
     });
+  
     setState({ ...state, tableData: updatedQuestions, changesMade: true });
   };
+  
 
   const handleCheckBoxChange = () => {
     let value = !state.consentChecked;
     setState({ ...state, consentChecked: value });
   };
 
+
   const onSubmit = async () => {
-    setState({ ...state, isLoading: true });
-    const path = "/updateresponses";
-    const path2 = "/chatgptresponses";
-    const formData = new FormData();
-    formData.append("data", JSON.stringify(state.tableData));
-    await API.post(myAPI, path, {
-      //   headers: {
-      //     "content-type": "multipart/form-data",
-      //   },
-      body: formData,
-    }).then(async (response) => {
-      await response;
-      API.get(myAPI, path2 + "/" + key.split("-")[0]);
-    });
-    const emptyStandardAnswerCount = state.tableData.filter(
-      (item) => item.StandardAnswer === null || item.StandardAnswer === ""
-    ).length;
-    console.log();
-    setState({
-      ...state,
-      isLoading: false,
-      changesMade: false,
-      showThankyouMessage: true,
-      emptyStandardAnswerCount: emptyStandardAnswerCount,
-    });
+    try {
+      // Set loading state
+      setState((prevState) => ({ ...prevState, isLoading: true }));
+      const caseId = key.split("-")[0];
+      // Post the table data to the server
+      const res = await axios.post(
+        `${apipath}responses/updateSubResponses/${caseId}`,
+        state.tableData
+      );
+      console.log(res);
+      console.log("----------"+res.data);
+      console.log("----------"+res.data.message);
+      if (res.data.message === "Responses updated successfully" || res.data.message === "Sub-Responses updated successfully") {        
+        
+        // Get the processed responses for the provided caseId
+        await axios.get(`${apipath}responses/chatgptresponses/${caseId}`);
+
+        const emptyStandardAnswerCount = state.tableData.filter(
+          (item) => item.subQuestions.some(sq => !sq.UserResponse || sq.UserResponse.trim() === "")
+        ).length;
+
+        setState((prevState) => ({
+          ...prevState,
+          isLoading: false,
+          changesMade: false,
+          showThankyouMessage: true,
+          emptyStandardAnswerCount: emptyStandardAnswerCount,
+        }));
+      } else if(res.data.message.includes("Status is changed already") ) {
+        let status = res.data.message.split('-')[1];
+        if(status.includes("CANCEL")) status="Cancelled";
+        else status="Completed";
+        let message = `Case is already marked as ${status}. Please contact your attorney if you need any further classification.`;
+        setState((prevState) => ({
+          ...prevState,
+          isLoading: false,
+          changesMade: false,
+          statusChangedMessage: message,
+        }));
+      }
+    } catch (error) {
+      console.error("Error during submission and processing:", error);
+      setState((prevState) => ({
+        ...prevState,
+        isLoading: false,
+        errorMessage: "An error occurred. Please try again.",
+      }));
+    }
   };
 
   const handleClose = () => {
@@ -326,6 +412,7 @@ const Submit = (props) => {
       {state.tableData != undefined &&
         state.tableData.length > 0 &&
         !state.showThankyouMessage &&
+        !state.statusChangedMessage &&
         !state.showNocaseMessage && (
           <div
             style={{ marginLeft: "3%", marginRight: "3%" }}
@@ -385,6 +472,12 @@ const Submit = (props) => {
         <React.Fragment>
           <p className="Message-box">{state.noCaseMessage}</p>
         </React.Fragment>
+      )}
+      {state.statusChangedMessage!=="" && (
+        <Typography variant="h6" gutterBottom align="center">
+          <p className="Message-box">{state.statusChangedMessage}</p>
+          
+        </Typography>
       )}
       {state.showThankyouMessage && (
         <React.Fragment>

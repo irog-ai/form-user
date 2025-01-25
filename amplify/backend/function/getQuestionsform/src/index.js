@@ -1,34 +1,8 @@
-/*
-Use the following code to retrieve configured secrets from SSM:
-
-const aws = require('aws-sdk');
-
-const { Parameters } = await (new aws.SSM())
-  .getParameters({
-    Names: ["DB_USERNAME","DB_PASS"].map(secretName => process.env[secretName]),
-    WithDecryption: true,
-  })
-  .promise();
-
-Parameters will be of the form { Name: 'secretName', Value: 'secretValue', ... }[]
-*/
-
 
 const aws = require("aws-sdk");
 
 exports.handler =async (event) => {
     const id = event.pathParameters.id;
-    //console.log("Hellooooooooooooooooooooo"+id)
-//   const { Parameters } = await new aws.SSM()
-//     .getParameters({
-//       Names: ["DB_USERNAME", "DB_PASS"].map(        
-//         (secretName) => process.env[secretName]
-//       ),
-//       WithDecryption: true,
-//     })
-//     .promise();
-
-  //console.log(Parameters);
 
   const promise = new Promise((resolve, reject) => {
     let sql = require("mssql");
